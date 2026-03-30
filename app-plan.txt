@@ -1,12 +1,274 @@
-Build a simple first version of a job application assistant.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JobSave - Job Application Assistant</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0066ff;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin: 0 0 16px 0;
+      color: #222;
+      font-size: 1.4rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #444;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background: #0066ff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+    button:hover {
+      background: #0052cc;
+    }
+    .item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: #ff4444;
+      padding: 4px 10px;
+      font-size: 0.9rem;
+    }
+    .status {
+      text-align: center;
+      color: #28a745;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    @media (max-width: 600px) {
+      body { padding: 12px; }
+      section { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>JobSave</h1>
+    <p class="subtitle">Your job application info — saved automatically</p>
 
-The app should:
-- Let users enter and save personal information (name, address, phone, email)
-- Let users save work history and resume details
-- Allow multiple saved answers for common questions
-- Let users edit and update their information anytime
-- Prevent data loss by saving progress automatically
-- Work on mobile and desktop
+    <!-- Personal Information -->
+    <section>
+      <h2>Personal Information</h2>
+      <label>Full Name</label>
+      <input type="text" id="name" placeholder="Jane Doe">
 
-Start with a basic working version and simple interface.
-Explain the structure clearly.
+      <label>Address</label>
+      <input type="text" id="address" placeholder="123 Main Street, City, State">
+
+      <label>Phone</label>
+      <input type="tel" id="phone" placeholder="(555) 123-4567">
+
+      <label>Email</label>
+      <input type="email" id="email" placeholder="jane@email.com">
+
+      <button onclick="savePersonal()">Save Personal Info</button>
+    </section>
+
+    <!-- Work History -->
+    <section>
+      <h2>Work History & Resume Details</h2>
+      <div id="work-list"></div>
+      
+      <label>Job Title</label>
+      <input type="text" id="job-title" placeholder="Software Engineer">
+
+      <label>Company</label>
+      <input type="text" id="company" placeholder="Tech Corp">
+
+      <label>Description / Achievements</label>
+      <textarea id="job-desc" rows="3" placeholder="Built features, improved performance..."></textarea>
+
+      <button onclick="addWorkEntry()">Add Work Entry</button>
+    </section>
+
+    <!-- Saved Answers -->
+    <section>
+      <h2>Saved Answers for Common Questions</h2>
+      <div id="answers-list"></div>
+      
+      <label>New Answer</label>
+      <textarea id="new-answer" rows="4" placeholder="Type your answer here (e.g. Tell me about yourself...)"></textarea>
+
+      <button onclick="addAnswer()">Add Saved Answer</button>
+    </section>
+
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // Auto-save and load all data
+    function loadAllData() {
+      // Personal info
+      document.getElementById('name').value = localStorage.getItem('name') || '';
+      document.getElementById('address').value = localStorage.getItem('address') || '';
+      document.getElementById('phone').value = localStorage.getItem('phone') || '';
+      document.getElementById('email').value = localStorage.getItem('email') || '';
+
+      // Work history
+      const workList = document.getElementById('work-list');
+      workList.innerHTML = '';
+      const workData = JSON.parse(localStorage.getItem('workHistory') || '[]');
+      workData.forEach((entry, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          <strong>${entry.title} at ${entry.company}</strong><br>
+          ${entry.description}
+          <button class="delete-btn" onclick="deleteWork(${index})">Delete</button>
+        `;
+        workList.appendChild(div);
+      });
+
+      // Saved answers
+      const answersList = document.getElementById('answers-list');
+      answersList.innerHTML = '';
+      const answersData = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      answersData.forEach((answer, index) => {
+        const div = document.createElement('div');
+        div.className = 'item';
+        div.innerHTML = `
+          ${answer}
+          <button class="delete-btn" onclick="deleteAnswer(${index})">Delete</button>
+        `;
+        answersList.appendChild(div);
+      });
+    }
+
+    function savePersonal() {
+      localStorage.setItem('name', document.getElementById('name').value);
+      localStorage.setItem('address', document.getElementById('address').value);
+      localStorage.setItem('phone', document.getElementById('phone').value);
+      localStorage.setItem('email', document.getElementById('email').value);
+      showStatus('Personal information saved!');
+    }
+
+    function addWorkEntry() {
+      const title = document.getElementById('job-title').value.trim();
+      const company = document.getElementById('company').value.trim();
+      const desc = document.getElementById('job-desc').value.trim();
+      
+      if (!title || !company) {
+        showStatus('Please enter job title and company');
+        return;
+      }
+
+      let workHistory = JSON.parse(localStorage.getItem('workHistory') || '[]');
+      workHistory.push({ title, company, description: desc });
+      localStorage.setItem('workHistory', JSON.stringify(workHistory));
+
+      document.getElementById('job-title').value = '';
+      document.getElementById('company').value = '';
+      document.getElementById('job-desc').value = '';
+
+      loadAllData();
+      showStatus('Work entry added!');
+    }
+
+    function deleteWork(index) {
+      let workHistory = JSON.parse(localStorage.getItem('workHistory') || '[]');
+      workHistory.splice(index, 1);
+      localStorage.setItem('workHistory', JSON.stringify(workHistory));
+      loadAllData();
+      showStatus('Work entry removed');
+    }
+
+    function addAnswer() {
+      const answerText = document.getElementById('new-answer').value.trim();
+      if (!answerText) return;
+
+      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      savedAnswers.push(answerText);
+      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
+
+      document.getElementById('new-answer').value = '';
+      loadAllData();
+      showStatus('Answer saved!');
+    }
+
+    function deleteAnswer(index) {
+      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      savedAnswers.splice(index, 1);
+      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
+      loadAllData();
+      showStatus('Answer removed');
+    }
+
+    function showStatus(message) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      setTimeout(() => {
+        statusEl.textContent = '';
+      }, 2500);
+    }
+
+    // Load data when page opens + auto-save on input changes for personal info
+    window.onload = () => {
+      loadAllData();
+
+      // Auto-save personal info as you type
+      const personalInputs = ['name', 'address', 'phone', 'email'];
+      personalInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            localStorage.setItem(id, el.value);
+          });
+        }
+      });
+    };
+  </script>
+</body>
+</html>
