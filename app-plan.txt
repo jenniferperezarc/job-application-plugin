@@ -1,0 +1,12 @@
+Build a simple first version of a job application assistant.
+
+The app should:
+- Let users enter and save personal information (name, address, phone, email)
+- Let users save work history and resume details
+- Allow multiple saved answers for common questions
+- Let users edit and update their information anytime
+- Prevent data loss by saving progress automatically
+- Work on mobile and desktop
+
+Start with a basic working version and simple interface.
+Explain the structure clearly.
