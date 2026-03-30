@@ -7,8 +7,6 @@
     "default_popup": "popup.html",
     "default_title": "JobSave"
   },
-  "permissions": ["storage"],
-  "icons": {
-    "128": "icon.png"
-  }
+  "permissions": ["storage"]
+  
 }
