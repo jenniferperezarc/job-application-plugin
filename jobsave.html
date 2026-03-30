@@ -3,95 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JobSave - Job Application Assistant</title>
+  <title>JobSave</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, sans-serif;
-      margin: 0;
-      padding: 16px;
-      background: #f8f9fa;
-      color: #333;
-      line-height: 1.5;
-    }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-    h1 {
-      text-align: center;
-      color: #0066ff;
-      margin-bottom: 8px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #666;
-      margin-bottom: 30px;
-    }
-    section {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    h2 {
-      margin: 0 0 16px 0;
-      color: #222;
-      font-size: 1.4rem;
-    }
-    label {
-      display: block;
-      margin-bottom: 6px;
-      font-weight: 500;
-      color: #444;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 14px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 1rem;
-      box-sizing: border-box;
-    }
-    button {
-      background: #0066ff;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1rem;
-      font-weight: 500;
-    }
-    button:hover {
-      background: #0052cc;
-    }
-    .item {
-      background: #f8f9fa;
-      padding: 12px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      position: relative;
-    }
-    .delete-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #ff4444;
-      padding: 4px 10px;
-      font-size: 0.9rem;
-    }
-    .status {
-      text-align: center;
-      color: #28a745;
-      font-weight: 500;
-      margin-top: 10px;
-    }
-    @media (max-width: 600px) {
-      body { padding: 12px; }
-      section { padding: 16px; }
-    }
+    body { font-family: system-ui, sans-serif; margin:0; padding:16px; background:#f8f9fa; }
+    .container { max-width: 600px; margin:0 auto; }
+    h1 { text-align:center; color:#0066ff; }
+    .subtitle { text-align:center; color:#666; margin-bottom:24px; }
+    section { background:white; border-radius:12px; padding:20px; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+    h2 { margin:0 0 16px; color:#222; }
+    label { display:block; margin:12px 0 6px; font-weight:500; }
+    input, textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
+    button { background:#0066ff; color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; margin-top:8px; }
+    button:hover { background:#0052cc; }
+    .item { background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:12px; position:relative; }
+    .delete-btn, .edit-btn { padding:6px 12px; font-size:0.9rem; margin-left:8px; }
+    .delete-btn { background:#ff4444; }
+    .edit-btn { background:#ffa500; }
+    .status { text-align:center; color:#28a745; margin-top:10px; }
   </style>
 </head>
 <body>
@@ -121,17 +49,30 @@
     <section>
       <h2>Work History & Resume Details</h2>
       <div id="work-list"></div>
-      
+
       <label>Job Title</label>
       <input type="text" id="job-title" placeholder="Software Engineer">
 
       <label>Company</label>
       <input type="text" id="company" placeholder="Tech Corp">
 
-      <label>Description / Achievements</label>
-      <textarea id="job-desc" rows="3" placeholder="Built features, improved performance..."></textarea>
+      <label>Company Address (optional)</label>
+      <input type="text" id="company-address" placeholder="456 Business Ave, City, State">
 
-      <button onclick="addWorkEntry()">Add Work Entry</button>
+      <label>Start Date</label>
+      <input type="month" id="start-date">
+
+      <label>End Date (leave blank if current)</label>
+      <input type="month" id="end-date">
+
+      <label>
+        <input type="checkbox" id="self-employed"> Self-employed / Independent Contractor
+      </label>
+
+      <label>Description / Achievements</label>
+      <textarea id="job-desc" rows="4" placeholder="Built features, improved performance..."></textarea>
+
+      <button onclick="addOrUpdateWorkEntry()">Add / Update Work Entry</button>
     </section>
 
     <!-- Saved Answers -->
@@ -140,8 +81,7 @@
       <div id="answers-list"></div>
       
       <label>New Answer</label>
-      <textarea id="new-answer" rows="4" placeholder="Type your answer here (e.g. Tell me about yourself...)"></textarea>
-
+      <textarea id="new-answer" rows="4" placeholder="Type your answer here..."></textarea>
       <button onclick="addAnswer()">Add Saved Answer</button>
     </section>
 
@@ -149,9 +89,10 @@
   </div>
 
   <script>
-    // Auto-save and load all data
+    let editingIndex = -1;
+
     function loadAllData() {
-      // Personal info
+      // Personal
       document.getElementById('name').value = localStorage.getItem('name') || '';
       document.getElementById('address').value = localStorage.getItem('address') || '';
       document.getElementById('phone').value = localStorage.getItem('phone') || '';
@@ -161,12 +102,17 @@
       const workList = document.getElementById('work-list');
       workList.innerHTML = '';
       const workData = JSON.parse(localStorage.getItem('workHistory') || '[]');
+      
       workData.forEach((entry, index) => {
         const div = document.createElement('div');
         div.className = 'item';
         div.innerHTML = `
           <strong>${entry.title} at ${entry.company}</strong><br>
-          ${entry.description}
+          ${entry.selfEmployed ? '<em>Self-employed / Independent</em><br>' : ''}
+          ${entry.startDate || ''} ${entry.endDate ? '– ' + entry.endDate : '– Present'}<br>
+          ${entry.companyAddress ? entry.companyAddress + '<br>' : ''}
+          ${entry.description || ''}
+          <button class="edit-btn" onclick="editWork(${index})">Edit</button>
           <button class="delete-btn" onclick="deleteWork(${index})">Delete</button>
         `;
         workList.appendChild(div);
@@ -179,10 +125,7 @@
       answersData.forEach((answer, index) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `
-          ${answer}
-          <button class="delete-btn" onclick="deleteAnswer(${index})">Delete</button>
-        `;
+        div.innerHTML = `${answer}<button class="delete-btn" onclick="deleteAnswer(${index})">Delete</button>`;
         answersList.appendChild(div);
       });
     }
@@ -192,29 +135,57 @@
       localStorage.setItem('address', document.getElementById('address').value);
       localStorage.setItem('phone', document.getElementById('phone').value);
       localStorage.setItem('email', document.getElementById('email').value);
-      showStatus('Personal information saved!');
+      showStatus('Personal info saved!');
     }
 
-    function addWorkEntry() {
+    function addOrUpdateWorkEntry() {
       const title = document.getElementById('job-title').value.trim();
       const company = document.getElementById('company').value.trim();
-      const desc = document.getElementById('job-desc').value.trim();
-      
       if (!title || !company) {
-        showStatus('Please enter job title and company');
+        showStatus('Job title and company are required');
         return;
       }
 
       let workHistory = JSON.parse(localStorage.getItem('workHistory') || '[]');
-      workHistory.push({ title, company, description: desc });
+
+      const newEntry = {
+        title: title,
+        company: company,
+        companyAddress: document.getElementById('company-address').value.trim(),
+        startDate: document.getElementById('start-date').value,
+        endDate: document.getElementById('end-date').value,
+        selfEmployed: document.getElementById('self-employed').checked,
+        description: document.getElementById('job-desc').value.trim()
+      };
+
+      if (editingIndex >= 0) {
+        workHistory[editingIndex] = newEntry;
+        editingIndex = -1;
+        showStatus('Work entry updated!');
+      } else {
+        workHistory.push(newEntry);
+        showStatus('Work entry added!');
+      }
+
       localStorage.setItem('workHistory', JSON.stringify(workHistory));
-
-      document.getElementById('job-title').value = '';
-      document.getElementById('company').value = '';
-      document.getElementById('job-desc').value = '';
-
+      clearWorkForm();
       loadAllData();
-      showStatus('Work entry added!');
+    }
+
+    function editWork(index) {
+      const workData = JSON.parse(localStorage.getItem('workHistory') || '[]');
+      const entry = workData[index];
+      
+      document.getElementById('job-title').value = entry.title || '';
+      document.getElementById('company').value = entry.company || '';
+      document.getElementById('company-address').value = entry.companyAddress || '';
+      document.getElementById('start-date').value = entry.startDate || '';
+      document.getElementById('end-date').value = entry.endDate || '';
+      document.getElementById('self-employed').checked = entry.selfEmployed || false;
+      document.getElementById('job-desc').value = entry.description || '';
+      
+      editingIndex = index;
+      showStatus('Edit the fields and click "Add / Update Work Entry"');
     }
 
     function deleteWork(index) {
@@ -222,53 +193,46 @@
       workHistory.splice(index, 1);
       localStorage.setItem('workHistory', JSON.stringify(workHistory));
       loadAllData();
-      showStatus('Work entry removed');
+      showStatus('Work entry deleted');
+    }
+
+    function clearWorkForm() {
+      document.getElementById('job-title').value = '';
+      document.getElementById('company').value = '';
+      document.getElementById('company-address').value = '';
+      document.getElementById('start-date').value = '';
+      document.getElementById('end-date').value = '';
+      document.getElementById('self-employed').checked = false;
+      document.getElementById('job-desc').value = '';
+      editingIndex = -1;
     }
 
     function addAnswer() {
-      const answerText = document.getElementById('new-answer').value.trim();
-      if (!answerText) return;
-
-      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
-      savedAnswers.push(answerText);
-      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
-
+      const text = document.getElementById('new-answer').value.trim();
+      if (!text) return;
+      let answers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      answers.push(text);
+      localStorage.setItem('savedAnswers', JSON.stringify(answers));
       document.getElementById('new-answer').value = '';
       loadAllData();
       showStatus('Answer saved!');
     }
 
     function deleteAnswer(index) {
-      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
-      savedAnswers.splice(index, 1);
-      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
+      let answers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      answers.splice(index, 1);
+      localStorage.setItem('savedAnswers', JSON.stringify(answers));
       loadAllData();
-      showStatus('Answer removed');
+      showStatus('Answer deleted');
     }
 
-    function showStatus(message) {
-      const statusEl = document.getElementById('status');
-      statusEl.textContent = message;
-      setTimeout(() => {
-        statusEl.textContent = '';
-      }, 2500);
+    function showStatus(msg) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      setTimeout(() => el.textContent = '', 2500);
     }
 
-    // Load data when page opens + auto-save on input changes for personal info
+    // Auto-save personal info
     window.onload = () => {
       loadAllData();
-
-      // Auto-save personal info as you type
-      const personalInputs = ['name', 'address', 'phone', 'email'];
-      personalInputs.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) {
-          el.addEventListener('input', () => {
-            localStorage.setItem(id, el.value);
-          });
-        }
-      });
-    };
-  </script>
-</body>
-</html>
+      const ids = ['name','
