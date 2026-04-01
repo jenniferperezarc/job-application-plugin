@@ -5,21 +5,90 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>JobSave</title>
   <style>
-    body { font-family: system-ui, sans-serif; margin:0; padding:16px; background:#f8f9fa; }
-    .container { max-width: 600px; margin:0 auto; }
-    h1 { text-align:center; color:#0066ff; }
-    .subtitle { text-align:center; color:#666; margin-bottom:24px; }
-    section { background:white; border-radius:12px; padding:20px; margin-bottom:24px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
-    h2 { margin:0 0 16px; color:#222; }
-    label { display:block; margin:12px 0 6px; font-weight:500; }
-    input, textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; box-sizing:border-box; }
-    button { background:#0066ff; color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer; margin-top:8px; }
-    button:hover { background:#0052cc; }
-    .item { background:#f8f9fa; padding:16px; border-radius:8px; margin-bottom:12px; position:relative; }
-    .delete-btn, .edit-btn { padding:6px 12px; font-size:0.9rem; margin-left:8px; }
-    .delete-btn { background:#ff4444; }
-    .edit-btn { background:#ffa500; }
-    .status { text-align:center; color:#28a745; margin-top:10px; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 16px;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      color: #0066ff;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+    }
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    h2 {
+      margin: 0 0 16px 0;
+      color: #222;
+      font-size: 1.4rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #444;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 14px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      background: #0066ff;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 500;
+      width: 100%;
+      margin-top: 8px;
+    }
+    button:hover {
+      background: #0052cc;
+    }
+    .item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .delete-btn, .edit-btn {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      margin: 4px 4px 0 0;
+    }
+    .delete-btn { background: #ff4444; }
+    .edit-btn { background: #ffa500; }
+    .status {
+      text-align: center;
+      color: #28a745;
+      font-weight: 500;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -42,14 +111,14 @@
       <label>Email</label>
       <input type="email" id="email" placeholder="jane@email.com">
 
-      <button onclick="savePersonal()">Save Personal Info</button>
+      <button id="save-personal">Save Personal Info</button>
     </section>
 
     <!-- Work History -->
     <section>
       <h2>Work History & Resume Details</h2>
       <div id="work-list"></div>
-
+      
       <label>Job Title</label>
       <input type="text" id="job-title" placeholder="Software Engineer">
 
@@ -72,7 +141,7 @@
       <label>Description / Achievements</label>
       <textarea id="job-desc" rows="4" placeholder="Built features, improved performance..."></textarea>
 
-      <button onclick="addOrUpdateWorkEntry()">Add / Update Work Entry</button>
+      <button id="save-work">Add / Update Work Entry</button>
     </section>
 
     <!-- Saved Answers -->
@@ -82,7 +151,7 @@
       
       <label>New Answer</label>
       <textarea id="new-answer" rows="4" placeholder="Type your answer here..."></textarea>
-      <button onclick="addAnswer()">Add Saved Answer</button>
+      <button id="save-answer">Add Saved Answer</button>
     </section>
 
     <div class="status" id="status"></div>
@@ -92,7 +161,7 @@
     let editingIndex = -1;
 
     function loadAllData() {
-      // Personal
+      // Personal info
       document.getElementById('name').value = localStorage.getItem('name') || '';
       document.getElementById('address').value = localStorage.getItem('address') || '';
       document.getElementById('phone').value = localStorage.getItem('phone') || '';
@@ -125,7 +194,10 @@
       answersData.forEach((answer, index) => {
         const div = document.createElement('div');
         div.className = 'item';
-        div.innerHTML = `${answer}<button class="delete-btn" onclick="deleteAnswer(${index})">Delete</button>`;
+        div.innerHTML = `
+          ${answer}
+          <button class="delete-btn" onclick="deleteAnswer(${index})">Delete</button>
+        `;
         answersList.appendChild(div);
       });
     }
@@ -135,7 +207,7 @@
       localStorage.setItem('address', document.getElementById('address').value);
       localStorage.setItem('phone', document.getElementById('phone').value);
       localStorage.setItem('email', document.getElementById('email').value);
-      showStatus('Personal info saved!');
+      showStatus('Personal information saved!');
     }
 
     function addOrUpdateWorkEntry() {
@@ -185,7 +257,7 @@
       document.getElementById('job-desc').value = entry.description || '';
       
       editingIndex = index;
-      showStatus('Edit the fields and click "Add / Update Work Entry"');
+      showStatus('Edit the fields then click "Add / Update Work Entry"');
     }
 
     function deleteWork(index) {
@@ -210,29 +282,47 @@
     function addAnswer() {
       const text = document.getElementById('new-answer').value.trim();
       if (!text) return;
-      let answers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
-      answers.push(text);
-      localStorage.setItem('savedAnswers', JSON.stringify(answers));
+
+      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      savedAnswers.push(text);
+      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
+
       document.getElementById('new-answer').value = '';
       loadAllData();
       showStatus('Answer saved!');
     }
 
     function deleteAnswer(index) {
-      let answers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
-      answers.splice(index, 1);
-      localStorage.setItem('savedAnswers', JSON.stringify(answers));
+      let savedAnswers = JSON.parse(localStorage.getItem('savedAnswers') || '[]');
+      savedAnswers.splice(index, 1);
+      localStorage.setItem('savedAnswers', JSON.stringify(savedAnswers));
       loadAllData();
-      showStatus('Answer deleted');
+      showStatus('Answer removed');
     }
 
-    function showStatus(msg) {
-      const el = document.getElementById('status');
-      el.textContent = msg;
-      setTimeout(() => el.textContent = '', 2500);
+    function showStatus(message) {
+      const statusEl = document.getElementById('status');
+      statusEl.textContent = message;
+      setTimeout(() => {
+        statusEl.textContent = '';
+      }, 2500);
     }
 
-    // Auto-save personal info
-    window.onload = () => {
+    // Initialize when page loads
+    document.addEventListener("DOMContentLoaded", () => {
       loadAllData();
-      const ids = ['name','
+
+      // Auto-save personal info as you type
+      const personalInputs = ['name', 'address', 'phone', 'email'];
+      personalInputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.addEventListener('input', () => {
+            localStorage.setItem(id, el.value);
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
