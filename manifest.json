@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
   "name": "JobSave",
-  "version": "1.0",
-  "description": "Save job application info and copy it fast",
+  "version": "1.0.0",
+  "description": "Save personal and work history information for job applications.",
+  "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
     "default_title": "JobSave"
-  },
-  "permissions": ["storage"]
-  
+  }
 }
