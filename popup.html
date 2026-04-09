@@ -4,29 +4,69 @@
   <meta charset="UTF-8">
   <title>JobSave</title>
   <style>
-    body { 
-      width: 300px; 
-      padding: 20px; 
-      font-family: system-ui; 
-      text-align: center; 
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px;
+      width: 320px;
+      box-sizing: border-box;
     }
-    button { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 10px 0; 
-      background: #0066ff; 
-      color: white; 
-      border: none; 
-      border-radius: 8px; 
-      font-size: 16px;
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 10px;
+    }
+
+    h3 {
+      margin-top: 18px;
+      margin-bottom: 8px;
+    }
+
+    input,
+    textarea,
+    button {
+      width: 100%;
+      margin-top: 8px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    label {
+      display: block;
+      margin-top: 8px;
+    }
+
+    .item {
+      border: 1px solid #ccc;
+      padding: 8px;
+      margin-top: 8px;
+      border-radius: 4px;
     }
   </style>
 </head>
 <body>
   <h2>JobSave</h2>
-  <p>Your job application helper</p>
-  
-  <button id="open-form">Open My Job Form</button>
+
+  <h3>Personal Info</h3>
+  <input id="name" placeholder="Name">
+  <input id="address" placeholder="Address">
+  <input id="phone" placeholder="Phone">
+  <input id="email" placeholder="Email">
+  <button id="save-personal">Save Personal Info</button>
+
+  <h3>Work History</h3>
+  <input id="job-title" placeholder="Job Title">
+  <input id="company" placeholder="Company">
+  <input id="company-address" placeholder="Company Address">
+  <input id="start-date" type="date">
+  <input id="end-date" type="date">
+  <label>
+    <input id="self-employed" type="checkbox" style="width:auto; margin-right:6px;">
+    Self-employed
+  </label>
+  <textarea id="job-desc" placeholder="Job Description"></textarea>
+  <button id="save-work">Save Work History</button>
+
+  <div id="work-list"></div>
 
   <script src="popup.js"></script>
 </body>
